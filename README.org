@@ -47,7 +47,7 @@ will render
     <li>a list</li>
   </ul>
 #+end_src
-*** Attributes
+*** Attribute
 attributes are provided using common lisp's =&key= argument synthax
 #+begin_src lisp
   (div :style "another-flexbox-becuase also-a-menu i-dont-know-css"
