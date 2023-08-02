@@ -1,11 +1,7 @@
 #+title: xml-lisp-thingy
-I don't know what I have reinvented, though I have most likey reinvented something, but it's in lisp now, so that should be a plus
+I might have accidentally reinvented react, without jsx though, that's a plus
 
-if you have any system capable of properly reading =.org= files it might be better to download this file and read it there, github can have its moments parsing them
-
-note that the project is currently still in development and breaking changes will come rather frequently.
-The docs might not always be in sync with the current development version, but the general idea/architecture/functioning should be the same
-
+if you have any system capable of properly reading =.org= files it might be better to download this file and read it there
 * Abstract
 this projects aims to provide a lisp system for generating html, xml or whatever other child of xml, while keeping the lisp execution logic as close as possible to the xml rendering logic, as to avoid having yet another ad hoc microlanguage to handle decisions/logic/variable expansion... during rendering, just use whatever plain lisp comes to mind, and it should probably work
 
@@ -32,54 +28,8 @@ this is, as of now, achieved by expanding the tag rendering into code rendering 
 it is, as of now, still unclear where I want to put the line between "just throw some lisp there and it works" and "I'll wrap this into its own thing", so the examples below might vary with time
 
 note there is nothing about the library saying it only renders html, this is an xml library, I just used html in most of the examples becuase that's the xml I'm most familiar with
-** Small boilerplate disclaimer
-#+begin_quote
-NOTE: you may skip this part if you want, it is not of much importance, and should be regarded as some leftover scaffolding while I work on a better way to do what the abominable code below does, without being abominable
-#+end_quote
-Though all the code here runs correctly, given that the system does not yet provide a way to cleanly define a set of tags, all the following snippets have been executed after passing this to the repl (see the api reference for what any of this =xmltags:deftag= business means)
-also, the system does not yet provide any particulary advanced pretty printing/auto indent mechanisms, and the demonstrated output has been reindented for readability, everything else is as-rendered
-#+begin_src lisp
-  (defmacro paragraph (name)
-    `(xmltags:deftag ,name 
-       :closep nil 
-       :newline-after-open t 
-       :newline-before-close t 
-       :newline-after-close t))
-  (defmacro title (name)
-    `(oneline ,name))
-  (defmacro oneline (name)
-    `(xmltags:deftag ,name 
-       :closep nil 
-       :newline-after-open nil 
-       :newline-before-close nil 
-       :newline-after-close t))
-  (defmacro facetag (name)
-    `(xmltags:deftag ,name 
-       :closep nil 
-       :newline-after-open nil 
-       :newline-before-close nil 
-       :newline-after-close nil))
-  (paragraph html)
-  (paragraph head)
-  (paragraph body)
-  (paragraph p)
 
-  (paragraph ul)
-  (paragraph div)
-
-  (title h1)
-  (title h2)
-  (title h3)
-  (title h4)
-  (title h4)
-
-  (oneline li)
-  (oneline script)
-  (oneline link)
-  (oneline meta)
-  (oneline title)
-#+end_src
-
+all the given examples were run in a =with-html= enviroment inside the =tagsenv= package, I'm working on a better way to do this but as of now, this is what it is
 ** just writing html in lisp
 it would be criminal not to support at least this, something like
 #+begin_src lisp
@@ -269,47 +219,54 @@ it will render the following
 #+end_src
 
 ** User defined xml schemas
-as you might have seen in the boilerplate disclamer, the rendering is in no way tied or coupled to html in particular, to better show this, let us add the following lines to the above mentioned boilerplate to tell the system how to render [[http://wiki.ros.org/roslaunch/XML][roslaunch files]]
+none of the package's code depends on using html out of all possible xmls, it's just the one
+
+** Rendering to file/string
+an example us
+facilities are (now) provided to render the xml to strings and files
+the following code, for example
 #+begin_src lisp
-  (paragraph launch)
-  (paragraph node)
-  (xmltags:deftag param :closep t :newline-after-close t)
+  (in-package :tagenvs)
+  (with-html
+      (defun pagina (&key (titolo nil)
+                       (corpus nil))
+        (html
+         (head
+          (title (or titolo "default title")))
+         (body
+          (or corpus (render-string (h1 "default title") (p "default paragraph"))))))
+    (render-to-file "the-power.html" (pagina :titolo "un titolo interessante"
+                                             :corpus
+                                             (render-string
+                                              (h1 "una mattina")
+                                              (h2 "mi sono alzato")
+                                              (h3 "o bella ciao")
+                                              (ul
+                                               (li "bella ciao")
+                                               (li "bella ciao, ciao, ciao"))))))
+#+end_src
+when evaluated, will output
+#+begin_src html
+  <html>
+    <head>
+      <title>un titolo interessante</title>
+    </head>
+    <body>
+      <h1>una mattina</h1>
+      <h2>mi sono alzato</h2>
+      <h3>o bella ciao</h3>
+      <ul>
+        <li>bella ciao</li>
+        <li>bella ciao, ciao, ciao</li>
+      </ul>
+    </body>
+  </html>
 #+end_src
 
-and voilà
-#+begin_src lisp
-  (launch
-   (param :name "some" :value "thing")
-   (param :name "other" :value "else")
-   (node :pkg "telemetry" :type "actuator_logger" :respawn "true"
-         (param :name "log_file" :value "$(find telemetry)/logs/act.log"))
-   (node :pkg "telemetry" :type "sensor_logger" :respawn "true"
-         (param :name "log_file" :value "$(find telemetry)/logs/sens.log")))
-#+end_src
-
-renders to
-#+begin_src xml
-  <launch>
-    <param name = "some"value = "thing"/>
-    <param name = "other"value = "else"/>
-    <node pkg = "telemetry"type = "actuator_logger"respawn = "true">
-      <param name = "log_file"value = "$(find telemetry)/logs/act.log"/>
-    </node>
-    <node pkg = "telemetry"type = "sensor_logger"respawn = "true">
-      <param name = "log_file"value = "$(find telemetry)/logs/sens.log"/>
-    </node>
-  </launch>
-#+end_src
+to the file =the-power.html=
 
 * "API Reference"
-oh, quite an overstatement this name is, quite an overstatement indeed!
- - =(xmltags:deftag name &key closep ...)= :: define a tag =name=, =closep= determines whether the tag is closed (for example: =<img src ="" \>= or =<br/>=, without a second tag), or open (for example: =<p> some text </p>=, with an opening *and* closing tag), once you have defined a tag, you may call.
-   some additional =&key= arguments are also provided to control where to put newlines when printing the tag, they are not necessairy for the xml to be valid, as the standard ignores such blank chars, but having some legible output helps quite a bit with debugging 
- - =(tag [:attr-name attr-val]* [child]*)= :: which will expand to the appropriate code for printing such a tag, with such attributes, and such children
- - =xmlprint:*xml-out-stream*= :: output stream all the xml gets rendered to, defaults to =*standard-outupt*=, but having it as a parameter will make it much easier to render to strings if I need to
-
-* Using with your own software
-some day
-
-
+ - ~tagenvs:with-html~ :: locally defines ~h1~, ~h2~, ~html~, et al. macros to write html in lisp
+ - ~(render-string (&rest body))~ :: executes the inner xml and returns it as a string, callable in the ~tagenvs~ package
+ - ~(render-to-file (filename &rest body))~ :: executes the inner xml and writes it to the file =filename=, callable in the ~tagenvs~ package
 
