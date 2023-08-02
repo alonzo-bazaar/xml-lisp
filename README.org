@@ -1,7 +1,11 @@
 #+title: xml-lisp-thingy
-I might have accidentally reinvented react, without jsx though, that's a plus
+I don't know what I have reinvented, though I have most likey reinvented something, but it's in lisp now, so that should be a plus
 
-if you have any system capable of properly reading =.org= files it might be better to download this file and read it there
+if you have any system capable of properly reading =.org= files it might be better to download this file and read it there, github can have its moments parsing them
+
+note that the project is currently still in development and breaking changes will come rather frequently.
+The docs might not always be in sync with the current development version, but the general idea/architecture/functioning should be the same
+
 * Abstract
 this projects aims to provide a lisp system for generating html, xml or whatever other child of xml, while keeping the lisp execution logic as close as possible to the xml rendering logic, as to avoid having yet another ad hoc microlanguage to handle decisions/logic/variable expansion... during rendering, just use whatever plain lisp comes to mind, and it should probably work
 
@@ -303,5 +307,9 @@ oh, quite an overstatement this name is, quite an overstatement indeed!
    some additional =&key= arguments are also provided to control where to put newlines when printing the tag, they are not necessairy for the xml to be valid, as the standard ignores such blank chars, but having some legible output helps quite a bit with debugging 
  - =(tag [:attr-name attr-val]* [child]*)= :: which will expand to the appropriate code for printing such a tag, with such attributes, and such children
  - =xmlprint:*xml-out-stream*= :: output stream all the xml gets rendered to, defaults to =*standard-outupt*=, but having it as a parameter will make it much easier to render to strings if I need to
+
+* Using with your own software
+some day
+
 
 
